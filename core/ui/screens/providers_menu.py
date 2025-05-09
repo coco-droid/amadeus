@@ -5,6 +5,11 @@ Menu de gestion des providers pour Amadeus
 from amadeus.core.ui.components.forms import Form, NotificationDialog
 from amadeus.providers import registry, config_manager, get_cloud_providers, get_local_providers
 from amadeus.i18n import get_translator
+import logging
+
+# Configuration du logging pour le débogage
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("providers_menu")
 
 def show_providers_menu(app):
     """Affiche le menu des providers."""
@@ -44,16 +49,21 @@ def select_cloud_provider(app):
     """Affiche la liste des providers cloud disponibles."""
     # Récupérer les providers cloud
     cloud_providers = get_cloud_providers()
+    logger.info(f"Providers cloud disponibles: {list(cloud_providers.keys())}")
     
     # Créer les options à partir des providers cloud disponibles
     options = []
-    for provider_id, config in cloud_providers.items():
-        provider_name = config.get("name", provider_id)
-        description = config.get("description", "")
-        options.append((
-            f"{provider_name} - {description}",
-            lambda pid=provider_id: configure_provider(app, pid)
-        ))
+    
+    if not cloud_providers:
+        options.append(("Aucun provider cloud trouvé", lambda: None))
+    else:
+        for provider_id, config in cloud_providers.items():
+            provider_name = config.get("name", provider_id)
+            description = config.get("description", "")
+            options.append((
+                f"{provider_name} - {description}",
+                lambda pid=provider_id: configure_provider(app, pid)
+            ))
     
     # Ajouter l'option de retour
     options.append(("↩️ Retour", lambda: manage_provider(app, "add")))
@@ -66,16 +76,21 @@ def select_local_provider(app):
     """Affiche la liste des providers locaux disponibles."""
     # Récupérer les providers locaux
     local_providers = get_local_providers()
+    logger.info(f"Providers locaux disponibles: {list(local_providers.keys())}")
     
     # Créer les options à partir des providers locaux disponibles
     options = []
-    for provider_id, config in local_providers.items():
-        provider_name = config.get("name", provider_id)
-        description = config.get("description", "")
-        options.append((
-            f"{provider_name} - {description}",
-            lambda pid=provider_id: configure_provider(app, pid)
-        ))
+    
+    if not local_providers:
+        options.append(("Aucun provider local trouvé", lambda: None))
+    else:
+        for provider_id, config in local_providers.items():
+            provider_name = config.get("name", provider_id)
+            description = config.get("description", "")
+            options.append((
+                f"{provider_name} - {description}",
+                lambda pid=provider_id: configure_provider(app, pid)
+            ))
     
     # Ajouter l'option de retour
     options.append(("↩️ Retour", lambda: manage_provider(app, "add")))
@@ -89,6 +104,7 @@ def configure_provider(app, provider_id):
     try:
         # Récupérer la configuration du provider
         provider_config = registry.get_provider_config(provider_id)
+        logger.info(f"Configuration du provider {provider_id}: {provider_config}")
         
         # Récupérer les informations d'identification existantes si disponibles
         existing_credentials = config_manager.get_provider_config(provider_id) or {}
@@ -131,6 +147,7 @@ def configure_provider(app, provider_id):
         app.show_form_container(form_container, form_kb)
         
     except Exception as e:
+        logger.error(f"Erreur lors de la configuration du provider {provider_id}: {e}", exc_info=True)
         title = "Erreur"
         dialog = NotificationDialog(
             title=title,
@@ -163,6 +180,7 @@ def save_provider_credentials(app, provider_id, values):
         
         # Sauvegarde des informations d'identification
         config_manager.save_provider_config(provider_id, values)
+        logger.info(f"Credentials sauvegardées pour le provider {provider_id}")
         
         # Afficher un message de succès
         dialog = NotificationDialog(
@@ -174,6 +192,7 @@ def save_provider_credentials(app, provider_id, values):
         app.show_dialog_container(dialog_container, dialog_kb)
         
     except Exception as e:
+        logger.error(f"Erreur lors de la sauvegarde des credentials: {e}", exc_info=True)
         # Afficher un message d'erreur
         dialog = NotificationDialog(
             title="Erreur",
@@ -187,6 +206,7 @@ def list_configured_providers(app):
     """Liste les providers configurés."""
     # Obtenir la liste des providers configurés
     configured_provider_ids = config_manager.get_all_providers()
+    logger.info(f"Providers configurés: {configured_provider_ids}")
     
     if not configured_provider_ids:
         # Pas de providers configurés
@@ -213,11 +233,12 @@ def list_configured_providers(app):
                 f"{provider_name} ({provider_type})",
                 lambda pid=provider_id: show_provider_details(app, pid)
             ))
-        except Exception:
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des détails du provider {provider_id}: {e}", exc_info=True)
             # Provider non trouvé dans le registre
             options.append((
                 f"{provider_id} (Non disponible)",
-                lambda pid=provider_id: show_provider_details(app, pid)
+                lambda pid=provider_id: show_provider_unavailable(app, pid)
             ))
     
     # Ajouter l'option de retour
@@ -226,6 +247,20 @@ def list_configured_providers(app):
     title = "Providers configurés"
     menu, kb = app.menu_manager.show_menu(title, options, width=50)
     app.show_menu_container(menu, kb)
+
+def show_provider_unavailable(app, provider_id):
+    """Affiche un message d'erreur pour un provider non disponible."""
+    dialog = NotificationDialog(
+        title="Provider non disponible",
+        text=f"Le provider {provider_id} n'est plus disponible dans le système.\n"
+             f"Vous pouvez supprimer sa configuration ou réinstaller le provider.",
+        buttons=[
+            ("Supprimer la configuration", lambda: confirm_delete_provider(app, provider_id, provider_id)),
+            ("Retour", lambda: list_configured_providers(app))
+        ]
+    )
+    dialog_container, dialog_kb = dialog.create_dialog()
+    app.show_dialog_container(dialog_container, dialog_kb)
 
 def show_provider_details(app, provider_id):
     """Affiche les détails d'un provider configuré."""
@@ -278,6 +313,7 @@ def show_provider_details(app, provider_id):
         app.show_menu_container(menu, kb)
         
     except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des détails du provider {provider_id}: {e}", exc_info=True)
         # Provider non trouvé
         dialog = NotificationDialog(
             title="Erreur",
@@ -291,6 +327,7 @@ def delete_provider_menu(app):
     """Affiche le menu de suppression des providers."""
     # Obtenir la liste des providers configurés
     configured_provider_ids = config_manager.get_all_providers()
+    logger.info(f"Providers disponibles pour suppression: {configured_provider_ids}")
     
     if not configured_provider_ids:
         # Pas de providers configurés
@@ -316,7 +353,8 @@ def delete_provider_menu(app):
                 f"🗑️ {provider_name}",
                 lambda pid=provider_id, pname=provider_name: confirm_delete_provider(app, pid, pname)
             ))
-        except Exception:
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération du provider {provider_id} pour suppression: {e}", exc_info=True)
             # Provider non trouvé dans le registre
             options.append((
                 f"🗑️ {provider_id} (Non disponible)",
@@ -349,6 +387,7 @@ def delete_provider(app, provider_id):
     try:
         # Supprimer le provider
         success = config_manager.delete_provider_config(provider_id)
+        logger.info(f"Suppression du provider {provider_id}: {'succès' if success else 'échec'}")
         
         if success:
             # Afficher un message de succès
@@ -369,6 +408,7 @@ def delete_provider(app, provider_id):
         app.show_dialog_container(dialog_container, dialog_kb)
         
     except Exception as e:
+        logger.error(f"Erreur lors de la suppression du provider {provider_id}: {e}", exc_info=True)
         # Afficher un message d'erreur
         dialog = NotificationDialog(
             title="Erreur",

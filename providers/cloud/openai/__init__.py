@@ -1,0 +1,1 @@
+"""Module provider pour OpenAI."""
