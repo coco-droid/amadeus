@@ -1,0 +1,38 @@
+{
+  "name": "OpenAI",
+  "description": "API OpenAI pour accéder aux modèles comme GPT-4",
+  "provider_type": "cloud",
+  "auth_requirements": [
+    {
+      "key": "api_key",
+      "name": "API Key",
+      "description": "Clé API OpenAI",
+      "required": true,
+      "secret": true
+    },
+    {
+      "key": "organization_id",
+      "name": "Organization ID",
+      "description": "ID de l'organisation OpenAI (optionnel)",
+      "required": false,
+      "secret": false
+    }
+  ],
+  "supported_features": {
+    "fine_tuning": ["standard", "lora"],
+    "embeddings": true,
+    "chat_completion": true
+  },
+  "default_models": [
+    {
+      "id": "gpt-3.5-turbo",
+      "name": "GPT-3.5 Turbo",
+      "fine_tunable": true
+    },
+    {
+      "id": "gpt-4",
+      "name": "GPT-4",
+      "fine_tunable": false
+    }
+  ]
+}

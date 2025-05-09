@@ -1,0 +1,31 @@
+{
+  "name": "Google AI Studio",
+  "description": "API Google AI Studio pour accéder aux modèles Gemini",
+  "provider_type": "cloud",
+  "auth_requirements": [
+    {
+      "key": "api_key",
+      "name": "API Key",
+      "description": "Clé API Google AI Studio",
+      "required": true,
+      "secret": true
+    }
+  ],
+  "supported_features": {
+    "fine_tuning": ["standard"],
+    "embeddings": true,
+    "chat_completion": true
+  },
+  "default_models": [
+    {
+      "id": "gemini-pro",
+      "name": "Gemini Pro",
+      "fine_tunable": false
+    },
+    {
+      "id": "gemini-1.5-pro",
+      "name": "Gemini 1.5 Pro",
+      "fine_tunable": false
+    }
+  ]
+}

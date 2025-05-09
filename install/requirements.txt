@@ -1,0 +1,7 @@
+
+prompt-toolkit
+pygments
+rich
+pyyaml
+typer
+requests

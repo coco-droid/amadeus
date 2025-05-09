@@ -1,0 +1,17 @@
+{
+  "app_title": "Amadeus - Fine-Tuning Assistant for Generative AI Models",
+  "main_menu_title": "Main Menu",
+  "standard_fine_tuning": "🔧 Standard Fine-Tuning",
+  "lora_fine_tuning": "🚀 LoRA Fine-Tuning",
+  "dpo_optimization": "🎯 Direct Preference Optimization (DPO)",
+  "provider_config": "⚙️ Provider Configuration",
+  "data_preparation": "📊 Data Preparation",
+  "language_settings": "🌐 Language Settings",
+  "quit": "🚪 Quit",
+  "welcome_message": "Welcome to Amadeus!",
+  "goodbye_message": "Thank you for using Amadeus!",
+  "language_menu_title": "Language Selection",
+  "english": "🇬🇧 English",
+  "french": "🇫🇷 Français",
+  "back": "⬅️ Back"
+}

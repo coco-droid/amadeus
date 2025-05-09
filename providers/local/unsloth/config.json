@@ -1,0 +1,36 @@
+{
+  "name": "Unsloth",
+  "description": "Librairie d'optimisation pour l'entraînement local de modèles LLM",
+  "provider_type": "local",
+  "auth_requirements": [
+    {
+      "key": "huggingface_token",
+      "name": "HuggingFace Token",
+      "description": "Token d'accès HuggingFace (pour les modèles privés)",
+      "required": false,
+      "secret": true
+    }
+  ],
+  "supported_features": {
+    "fine_tuning": ["lora", "qlora"],
+    "embeddings": false,
+    "chat_completion": false
+  },
+  "default_models": [
+    {
+      "id": "mistralai/Mistral-7B-v0.1",
+      "name": "Mistral 7B v0.1",
+      "fine_tunable": true
+    },
+    {
+      "id": "meta-llama/Llama-2-7b-hf",
+      "name": "Llama 2 7B",
+      "fine_tunable": true
+    },
+    {
+      "id": "microsoft/phi-2",
+      "name": "Phi-2",
+      "fine_tunable": true
+    }
+  ]
+}
